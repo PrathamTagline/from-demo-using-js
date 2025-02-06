@@ -15,9 +15,9 @@ const ACTIONS = { EDIT: "edit", DELETE: "delete" };
 let EMAIL_REGEXP = new RegExp('^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}$', 'i');
 
 // Initialize user database and counters
-let userDB = [];
-let userIdCounter = 1;
-let editingUserId = -1;
+let userDB = []; // user database 
+let userIdCounter = 1; // incremental userID counter 
+let editingUserId = -1; // editing userID (currently -1 means not any user data which edited)
 
 // State-wise city mapping
 const stateCities = {
@@ -30,6 +30,7 @@ state.addEventListener("change", () => {
     const cities = stateCities[state.value]?.sort() || [];
     city.innerHTML = DISABLED_OPTION + cities.map(city => `<option value="${city}">${city}</option>`).join("");
 });
+
 
 // Handle form submission
 form.addEventListener("submit", (event) => {
@@ -59,13 +60,21 @@ form.addEventListener("submit", (event) => {
 
 // Handle edit and delete button clicks inside the table
 tableBody.addEventListener("click", (event) => {
+    
+    // Find the closest <tr> (table row) element that is an ancestor of the event target (the clicked element).
+    // This ensures that we get the row associated with the clicked element.
     const row = event.target.closest("tr");
     const userId = parseInt(row.dataset.userId, 10);
-    
+
+    // Check if the clicked element has the class corresponding to the delete action.
+    // This helps determine if the delete button was clicked.
     if (event.target.classList.contains(ACTIONS.DELETE)) {
         deleteUser(userId);
         row.remove();
-    } else if (event.target.classList.contains(ACTIONS.EDIT)) {
+    }
+    // Check if the clicked element has the class corresponding to the edit action.
+    // This helps determine if the edit button was clicked.
+    else if (event.target.classList.contains(ACTIONS.EDIT)) {
         loadUserDataForEditing(userId);
         row.remove();
     }
@@ -119,6 +128,8 @@ function isEmailExist(email) {
 
 // Collect form data and return as object
 function collectFormData() {
+    // Create a new FormData object from the given form element.
+    // This captures all form input values for processing ( give the data in JS object )
     const formData = new FormData(form);
     const data = {};
     for (const [key, value] of formData.entries()) {
@@ -175,7 +186,10 @@ function renderTable() {
 
 // Create a table row for a user
 function createTableRow({ id, data }) {
-    const dataCells = Object.values(data).map(value => `<td>${Array.isArray(value) ? value.join(", ") : value}</td>`).join("");
+    // Convert the values of the 'data' object into table cells (<td> elements).
+    // If a value is an array, join its elements with a comma; otherwise, use the value directly.
+    // Finally, join all <td> elements into a single string to form a row.
+    const dataCells = Object.values(data).map(value => `<td>${Array.isArray(value) ? value.join(", ") : value}</td>`).join(""); 
     return `
         <tr data-user-id="${id}">
             <td>${id}</td>
@@ -190,6 +204,10 @@ function createTableRow({ id, data }) {
 // Filter table rows based on search input
 function filterTable() {
     const filter = searchInput.value.toUpperCase();
+    // Convert the table body rows into an array and iterate through each row.
+    // Retrieve the cell in the second column (index 1) where the name is stored.
+    // Check if the cell's text (converted to uppercase) includes the filter text.
+    // If it matches, display the row; otherwise, hide it.
     Array.from(tableBody.rows).forEach(row => {
         const nameCell = row.cells[1]; // Assuming name is in second column
         row.style.display = nameCell && nameCell.textContent.toUpperCase().includes(filter) ? "" : "none";
